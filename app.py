@@ -170,12 +170,6 @@ if excel_file:
     sheet = wb[sheet_name]
 
     st.subheader("🔎 Deteksi Baris per Segmen")
-    st.caption(
-        "Sistem mencari baris LABEL tiap segmen, lalu mencari baris 'Grand Total' "
-        "di dalam blok segmen itu — otomatis menyesuaikan meskipun jumlah region "
-        "per blok berbeda tiap bulan."
-    )
-
     st.markdown("**Kata kunci pencarian label per segmen** (ubah jika istilah di Excel berbeda)")
     kw_cols = st.columns(4)
     keyword_mapping = {}
