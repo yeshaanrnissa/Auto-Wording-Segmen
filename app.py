@@ -20,9 +20,7 @@ DEFAULT_KOLOM = {
     "Δ MTD Ticket Size": "S",
 }
 
-# ---------------------------------------------------------------------------
-# Helper: format angka
-# ---------------------------------------------------------------------------
+# Format Angka
 def format_ribuan(angka):
     if angka is None or angka == "":
         return "0"
@@ -40,14 +38,9 @@ def format_desimal(angka, digit=1):
     except (ValueError, TypeError):
         return "0"
 
+# Search nama segmen
 
-# ---------------------------------------------------------------------------
-# Helper: cari baris yang mengandung nama segmen di sheet Excel
-# ---------------------------------------------------------------------------
 def cari_baris_segmen(sheet, keyword_mapping, max_row_scan=1000, max_col_scan=15):
-    """Scan sheet, cari baris yang selnya cocok dengan kata kunci tiap segmen.
-    keyword_mapping: {nama_segmen: kata_kunci_pencarian}
-    Mengembalikan dict {nama_segmen: baris_ditemukan_atau_None}"""
     hasil = {s: None for s in SEGMEN_LIST}
     max_row = min(sheet.max_row, max_row_scan)
     max_col = min(sheet.max_column, max_col_scan)
@@ -66,10 +59,6 @@ def cari_baris_segmen(sheet, keyword_mapping, max_row_scan=1000, max_col_scan=15
 
 def cari_baris_grand_total(sheet, label_rows, grand_total_keyword="Grand Total",
                             max_row_scan=1000, max_col_scan=15):
-    """Untuk tiap segmen, cari baris 'Grand Total' di DALAM blok segmen itu
-    (antara baris label segmen ini sampai sebelum label segmen berikutnya).
-    label_rows: {nama_segmen: baris_label_atau_None}
-    Mengembalikan dict {nama_segmen: baris_grand_total_atau_None}"""
     hasil = {s: None for s in label_rows}
     label_terurut = sorted(
         [(s, r) for s, r in label_rows.items() if r], key=lambda x: x[1]
@@ -101,17 +90,13 @@ def get_row_data(sheet, row, kolom_mapping):
         for label, kolom in kolom_mapping.items()
     }
 
-
-# ---------------------------------------------------------------------------
-# Helper: replace paragraf di Word
-# ---------------------------------------------------------------------------
+# Replace paragraf di Word
 def set_paragraph_text(para, new_text):
     if not para.runs:
         return
     para.runs[0].text = new_text
     for run in para.runs[1:]:
         run.text = ""
-
 
 def proses_dokumen(doc, data_per_segmen):
     current_section = None
@@ -165,9 +150,7 @@ def proses_dokumen(doc, data_per_segmen):
     return doc, jumlah_diubah, log
 
 
-# ---------------------------------------------------------------------------
 # UI
-# ---------------------------------------------------------------------------
 st.title("Auto Wording Segmen Excel to Word")
 st.caption(
     "Upload file Excel & template Word setiap kali laporan baru terbit — "
