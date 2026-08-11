@@ -138,10 +138,9 @@ def proses_dokumen(doc, data_per_segmen):
 # ---------------------------------------------------------------------------
 # UI
 # ---------------------------------------------------------------------------
-st.title("📊 Auto Wording Segmen: Excel ➜ Word")
+st.title("Auto Wording Segmen Excel to Word")
 st.caption(
-    "Upload file Excel & template Word setiap kali laporan baru terbit — "
-    "tidak perlu edit kode lagi."
+    "Upload file Excel & template Word setiap kali ringkasan segmen baru terbit"
 )
 
 col_upload1, col_upload2 = st.columns(2)
@@ -204,7 +203,7 @@ if excel_file:
     st.divider()
 
     if word_file:
-        if st.button("🚀 Generate Dokumen Word", type="primary"):
+        if st.button("Generate Dokumen Word", type="primary"):
             doc = Document(word_file)
             doc, jumlah_diubah, log = proses_dokumen(doc, data_per_segmen)
 
