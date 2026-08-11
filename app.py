@@ -10,14 +10,14 @@ st.set_page_config(page_title="Auto Wording Segmen", layout="wide")
 SEGMEN_LIST = ["Prioritas", "Payroll", "Wiraswasta", "Medium Entrepreneur"]
 
 DEFAULT_KOLOM = {
-    "Jumlah NoA": "E",
-    "MTD NoA": "F",
-    "% Penetrasi": "G",
-    "Penjualan": "H",
-    "Rata-rata Ticket Size": "J",
-    "Δ MTD NoA": "O",
-    "Δ MTD Penjualan": "Q",
-    "Δ MTD Ticket Size": "S",
+    "Jumlah NoA": "D",
+    "MTD NoA": "E",
+    "% Penetrasi": "F",
+    "Penjualan": "G",
+    "Rata-rata Ticket Size": "I",
+    "Δ MTD NoA": "N",
+    "Δ MTD Penjualan": "P",
+    "Δ MTD Ticket Size": "R",
 }
 
 # Format Angka
