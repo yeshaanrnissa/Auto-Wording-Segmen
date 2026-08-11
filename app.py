@@ -154,7 +154,6 @@ def proses_dokumen(doc, data_per_segmen):
 st.title("Auto Wording Segmen Excel to Word")
 st.caption(
     "Upload file Excel & template Word setiap kali laporan baru terbit — "
-    "tidak perlu edit kode lagi."
 )
 
 col_upload1, col_upload2 = st.columns(2)
