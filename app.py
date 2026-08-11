@@ -91,6 +91,9 @@ def cari_baris_grand_total(sheet, label_rows, grand_total_keyword="Grand Total",
             if hasil[segmen]:
                 break
     return hasil
+
+
+def get_row_data(sheet, row, kolom_mapping):
     if row is None or row < 1:
         return {k: None for k in kolom_mapping}
     return {
