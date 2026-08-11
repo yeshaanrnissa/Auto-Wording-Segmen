@@ -7,7 +7,7 @@ from docx import Document
 
 st.set_page_config(page_title="Auto Wording Segmen", layout="wide")
 
-SEGMEN_LIST = ["Prioritas", "Payroll", "Wiraswasta", "Medium Entrepreneur"]
+SEGMEN_LIST = ["Prioritas", "Payroll", "Micro", "Medium Entrepreneur"]
 
 DEFAULT_KOLOM = {
     "Jumlah NoA": "D",
