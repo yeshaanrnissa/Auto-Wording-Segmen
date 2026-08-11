@@ -112,7 +112,7 @@ def proses_dokumen(doc, data_per_segmen):
         elif text == "Payroll":
             current_section = data_per_segmen.get("Payroll")
             continue
-        elif text == "Wiraswasta":
+        elif text == "Micro":
             current_section = data_per_segmen.get("Micro")
             continue
         elif text == "Medium Entrepreneur":
