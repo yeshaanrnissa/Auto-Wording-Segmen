@@ -22,23 +22,6 @@ DEFAULT_KOLOM = {
     "Δ MTD Ticket Size": "R",
 }
 
-# Format Angka
-# def format_ribuan(angka):
-#     if angka is None or angka == "":
-#         return "0"
-#     try:
-#         return f"{int(float(angka)):,}".replace(",", ".")
-#     except (ValueError, TypeError):
-#         return "0"
-
-
-# def format_desimal(angka, digit=1):
-#     if angka is None or angka == "":
-#         return "0"
-#     try:
-#         return f"{float(angka):,.{digit}f}".replace(",", "X").replace(".", ",").replace("X", ".")
-#     except (ValueError, TypeError):
-#         return "0"
 def format_ribuan(angka):
     if angka is None or angka == "":
         return "0"
@@ -83,6 +66,31 @@ def format_percentage(angka, digit=2):
         return string_format.replace(",", "X").replace(".", ",").replace("X", ".") + "%"
     except (ValueError, TypeError):
         return "0%"
+
+BULAN_INDONESIA = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember"
+]
+
+
+def format_tanggal_indonesia(tanggal):
+    return f"{tanggal.day} {BULAN_INDONESIA[tanggal.month - 1]} {tanggal.year}"
+
+
+
+def format_tanggal_indonesia(tanggal):
+    return f"{tanggal.day} {BULAN_INDONESIA[tanggal.month - 1]} {tanggal.year}"
+
 
 # Search nama segmen
 
@@ -144,23 +152,74 @@ def set_paragraph_text(para, new_text):
     for run in para.runs[1:]:
         run.text = ""
 
-def proses_dokumen(doc, data_per_segmen):
+def proses_dokumen(doc, data_per_segmen, tanggal_laporan=None):
     current_section = None
     jumlah_diubah = 0
     log = []
 
-    for para in doc.paragraphs:
-        text = para.text.strip()
+    # =========================
+    # FORMAT TANGGAL
+    # =========================
+    tanggal_text = None
 
+    if tanggal_laporan:
+        tanggal_text = format_tanggal_indonesia(tanggal_laporan)
+
+    # Regex untuk mencari:
+    # sd 7 Agustus 2026
+    # sd 10 Agustus 2026
+    # sd 1 Januari 2027
+    pola_tanggal = re.compile(
+        r"sd\s+\d{1,2}\s+"
+        r"(?:Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|"
+        r"September|Oktober|November|Desember)"
+        r"\s+\d{4}",
+        flags=re.IGNORECASE
+    )
+
+    for para in doc.paragraphs:
+
+        # Simpan teks awal
+        text_sebelum = para.text.strip()
+
+        # =========================
+        # AUTOMASI TANGGAL
+        # =========================
+        if tanggal_text and text_sebelum:
+
+            new_text_tanggal = pola_tanggal.sub(
+                f"sd {tanggal_text}",
+                para.text
+            )
+
+            if new_text_tanggal != para.text:
+                log.append(
+                    f"Tanggal: {text_sebelum!r} -> {new_text_tanggal.strip()!r}"
+                )
+
+                set_paragraph_text(para, new_text_tanggal)
+
+            # Update text setelah tanggal diganti
+            text = new_text_tanggal.strip()
+
+        else:
+            text = text_sebelum
+
+        # =========================
+        # DETEKSI SEGMEN
+        # =========================
         if text == "Prioritas":
             current_section = data_per_segmen.get("Prioritas")
             continue
+
         elif text == "Payroll":
             current_section = data_per_segmen.get("Payroll")
             continue
+
         elif text == "Micro":
             current_section = data_per_segmen.get("Micro")
             continue
+
         elif text == "Medium Entrepreneur":
             current_section = data_per_segmen.get("Medium Entrepreneur")
             continue
@@ -168,31 +227,68 @@ def proses_dokumen(doc, data_per_segmen):
         if current_section is None or not para.runs:
             continue
 
+        # =========================
+        # AUTOMASI WORDING
+        # =========================
         new_text = None
+
         if text.startswith("Jumlah NoA"):
-            new_text = f"Jumlah NoA: {format_ribuan(current_section['Jumlah NoA'])} NoA"
+            new_text = (
+                f"Jumlah NoA: "
+                f"{format_ribuan(current_section['Jumlah NoA'])} NoA"
+            )
+
         elif text.startswith("MTD NoA"):
-            new_text = f"MTD NoA: {format_ribuan(current_section['MTD NoA'])} NoA"
+            new_text = (
+                f"MTD NoA: "
+                f"{format_ribuan(current_section['MTD NoA'])} NoA"
+            )
+
         elif text.startswith("% Penetrasi"):
             nilai = current_section["% Penetrasi"]
             new_text = f"% Penetrasi: {format_percentage(nilai)}"
-        elif text.startswith("Penjualan"):
-            new_text = f"Penjualan: {format_desimal(current_section['Penjualan'])} kg"
-        elif text.startswith("Rata-rata Ticket Size"):
-            new_text = f"Rata-rata Ticket Size: {format_desimal(current_section['Rata-rata Ticket Size'])} gram"
-        elif text.startswith("∆ MTD NoA") or text.startswith("Δ MTD NoA"):
-            new_text = f"∆ MTD NoA: ({format_ribuan(current_section['Δ MTD NoA'])}) NoA"
-        elif text.startswith("∆ MTD Penjualan") or text.startswith("Δ MTD Penjualan"):
-            new_text = f"∆ MTD Penjualan: ({format_desimal(current_section['Δ MTD Penjualan'])}) kg"
-        elif text.startswith("∆ MTD Ticket Size") or text.startswith("Δ MTD Ticket Size"):
-            new_text = f"∆ MTD Ticket Size: ({format_desimal(current_section['Δ MTD Ticket Size'])}) gr"
 
+        elif text.startswith("Penjualan"):
+            new_text = (
+                f"Penjualan: "
+                f"{format_desimal(current_section['Penjualan'])} kg"
+            )
+
+        elif text.startswith("Rata-rata Ticket Size"):
+            new_text = (
+                f"Rata-rata Ticket Size: "
+                f"{format_desimal(current_section['Rata-rata Ticket Size'])} gram"
+            )
+
+        elif text.startswith("∆ MTD NoA") or text.startswith("Δ MTD NoA"):
+            new_text = (
+                f"∆ MTD NoA: "
+                f"({format_ribuan(current_section['Δ MTD NoA'])}) NoA"
+            )
+
+        elif text.startswith("∆ MTD Penjualan") or text.startswith("Δ MTD Penjualan"):
+            new_text = (
+                f"∆ MTD Penjualan: "
+                f"({format_desimal(current_section['Δ MTD Penjualan'])}) kg"
+            )
+
+        elif text.startswith("∆ MTD Ticket Size") or text.startswith("Δ MTD Ticket Size"):
+            new_text = (
+                f"∆ MTD Ticket Size: "
+                f"({format_desimal(current_section['Δ MTD Ticket Size'])}) gr"
+            )
+
+        # =========================
+        # UPDATE PARAGRAF
+        # =========================
         if new_text:
             set_paragraph_text(para, new_text)
             jumlah_diubah += 1
             log.append(f"{text[:35]!r} -> {new_text}")
 
     return doc, jumlah_diubah, log
+
+
 
 
 # UI
@@ -318,6 +414,22 @@ with col_upload1:
 with col_upload2:
     word_file = st.file_uploader("2️⃣ Upload template Word (.docx)", type=["docx"])
 
+st.subheader("📅 Tanggal Laporan")
+
+tanggal_laporan = st.date_input(
+    "Pilih tanggal laporan",
+    value=None,
+    format="DD/MM/YYYY",
+    help="Tanggal ini akan otomatis menggantikan tanggal 'sd ...' di template Word."
+)
+
+if tanggal_laporan:
+    st.info(
+        f"Tanggal yang akan digunakan di Word: "
+        f"**{format_tanggal_indonesia(tanggal_laporan)}**"
+    )
+
+
 if excel_file:
     wb = openpyxl.load_workbook(excel_file, data_only=True)
     sheet_names = wb.sheetnames
@@ -397,7 +509,13 @@ if excel_file:
     if word_file:
         if st.button("Generate Dokumen Word", type="primary"):
             doc = Document(word_file)
-            doc, jumlah_diubah, log = proses_dokumen(doc, data_per_segmen)
+
+            doc, jumlah_diubah, log = proses_dokumen(
+                doc,
+                data_per_segmen,
+                tanggal_laporan=tanggal_laporan
+            )
+
 
             buffer = io.BytesIO()
             doc.save(buffer)
@@ -419,3 +537,4 @@ if excel_file:
         st.info("Upload template Word untuk melanjutkan.")
 else:
     st.info("Silakan upload file Excel terlebih dahulu.")
+
