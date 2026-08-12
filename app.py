@@ -3,40 +3,86 @@ import re
 import openpyxl
 import pandas as pd
 import streamlit as st
+import math
 from docx import Document
+
 
 st.set_page_config(page_title="Auto Wording Segmen", layout="wide")
 
 SEGMEN_LIST = ["Prioritas", "Payroll", "Micro", "Medium Entrepreneur"]
 
 DEFAULT_KOLOM = {
-    "Jumlah NoA": "D",
-    "MTD NoA": "E",
-    "% Penetrasi": "F",
-    "Penjualan": "G",
-    "Rata-rata Ticket Size": "I",
+    "Jumlah NoA": "E",
+    "MTD NoA": "F",
+    "% Penetrasi": "G",
+    "Penjualan": "H",
+    "Rata-rata Ticket Size": "J",
     "Δ MTD NoA": "N",
     "Δ MTD Penjualan": "P",
     "Δ MTD Ticket Size": "R",
 }
 
 # Format Angka
+# def format_ribuan(angka):
+#     if angka is None or angka == "":
+#         return "0"
+#     try:
+#         return f"{int(float(angka)):,}".replace(",", ".")
+#     except (ValueError, TypeError):
+#         return "0"
+
+
+# def format_desimal(angka, digit=1):
+#     if angka is None or angka == "":
+#         return "0"
+#     try:
+#         return f"{float(angka):,.{digit}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+#     except (ValueError, TypeError):
+#         return "0"
 def format_ribuan(angka):
     if angka is None or angka == "":
         return "0"
     try:
-        return f"{int(round(float(angka))):,}".replace(",", ".")
+        # Pisahkan tanda minus jika ada
+        string_angka = str(float(angka))
+        negatif = "-" if string_angka.startswith("-") else ""
+        string_angka = string_angka.lstrip("-")
+        
+        # Ambil bagian bulatnya saja sebelum koma desimal
+        bagian_bulat = string_angka.split('.')[0]
+        
+        # Format ribuan untuk bagian bulat
+        ribuan = f"{int(bagian_bulat):,}".replace(",", ".")
+        return f"{negatif}{ribuan}"
     except (ValueError, TypeError):
         return "0"
 
 
-def format_desimal(angka, digit=1):
+def format_desimal(angka, digit=2):
     if angka is None or angka == "":
         return "0"
     try:
+        # Menggunakan format bawaan Python (:,.2f) yang otomatis membulatkan seperti Excel
+        # Ditambah trik replace standar Indonesia (Titik jadi X, Koma jadi Titik, X jadi Koma)
         return f"{float(angka):,.{digit}f}".replace(",", "X").replace(".", ",").replace("X", ".")
     except (ValueError, TypeError):
         return "0"
+
+
+def format_percentage(angka, digit=2):
+    if angka is None or angka == "":
+        return "0%"
+    try:
+        # Mengubah ke float dan dikalikan 100 untuk persentase
+        nilai = float(angka) * 100
+        
+        # Menggunakan format bawaan (:,.f) agar otomatis membulatkan seperti Excel
+        string_format = f"{nilai:,.{digit}f}"
+        
+        # Ubah format ribuan dan desimal sesuai standar Indonesia
+        return string_format.replace(",", "X").replace(".", ",").replace("X", ".") + "%"
+    except (ValueError, TypeError):
+        return "0%"
 
 # Search nama segmen
 
@@ -129,8 +175,7 @@ def proses_dokumen(doc, data_per_segmen):
             new_text = f"MTD NoA: {format_ribuan(current_section['MTD NoA'])} NoA"
         elif text.startswith("% Penetrasi"):
             nilai = current_section["% Penetrasi"]
-            nilai_persen = nilai * 100 if nilai is not None else 0
-            new_text = f"% Penetrasi: {format_desimal(nilai_persen)}%"
+            new_text = f"% Penetrasi: {format_percentage(nilai)}"
         elif text.startswith("Penjualan"):
             new_text = f"Penjualan: {format_desimal(current_section['Penjualan'])} kg"
         elif text.startswith("Rata-rata Ticket Size"):
@@ -151,7 +196,118 @@ def proses_dokumen(doc, data_per_segmen):
 
 
 # UI
-st.title("Auto Wording Segmen Excel to Word")
+
+import streamlit as st
+
+# =========================
+# BSI THEME - CUSTOM CSS
+# =========================
+st.markdown("""
+    <style>
+    :root {
+        --bsi-teal: #00786F;
+        --bsi-teal-dark: #00534D;
+        --bsi-gold: #F5A623;
+        --bsi-gold-dark: #D4890E;
+        --bsi-bg: #F4FAF9;
+    }
+
+    /* Background utama */
+    .stApp {
+        background-color: var(--bsi-bg);
+    }
+
+    /* Judul & caption */
+    h1 {
+        color: var(--bsi-teal-dark) !important;
+        font-weight: 800 !important;
+    }
+    h2, h3 {
+        color: var(--bsi-teal) !important;
+    }
+    .stCaption, p, label, .st-emotion-cache-1v0mbdj {
+        color: #2E2E2E;
+    }
+
+    /* Tombol utama (primary) */
+    div.stButton > button[kind="primary"],
+    div.stDownloadButton > button {
+        background-color: var(--bsi-teal) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        transition: 0.2s ease-in-out;
+    }
+    div.stButton > button[kind="primary"]:hover,
+    div.stDownloadButton > button:hover {
+        background-color: var(--bsi-gold) !important;
+        color: #1a1a1a !important;
+    }
+
+    /* File uploader */
+    section[data-testid="stFileUploader"] {
+        border: 2px dashed var(--bsi-teal);
+        border-radius: 10px;
+        background-color: #FFFFFF;
+        padding: 10px;
+    }
+
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: #E6F4F2;
+        color: var(--bsi-teal-dark) !important;
+        border-radius: 6px;
+        font-weight: 600;
+    }
+
+    /* Divider */
+    hr {
+        border-top: 2px solid var(--bsi-gold) !important;
+    }
+
+    /* Alert / info box */
+    div[data-testid="stAlert"] {
+        border-left: 5px solid var(--bsi-teal);
+        background-color: #E6F4F2;
+    }
+
+    /* Success box */
+    div[data-baseweb="notification"] {
+        background-color: #E6F4F2 !important;
+        border-left: 5px solid var(--bsi-teal) !important;
+    }
+
+    /* Sidebar (jika ada) */
+    section[data-testid="stSidebar"] {
+        background-color: var(--bsi-teal-dark);
+    }
+    section[data-testid="stSidebar"] * {
+        color: white !important;
+    }
+
+    /* Dataframe header */
+    .stDataFrame thead tr th {
+        background-color: var(--bsi-teal) !important;
+        color: white !important;
+    }
+
+    /* Number input & text input border */
+    input {
+        border-color: var(--bsi-teal) !important;
+    }
+
+    /* Selectbox border */
+    div[data-baseweb="select"] > div {
+        border-color: var(--bsi-teal) !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# =========================
+# UI
+# =========================
+st.title("🏦 Auto Wording Segmen Excel to Word")
 st.caption(
     "Upload file Excel & template Word setiap kali laporan baru terbit — "
 )
