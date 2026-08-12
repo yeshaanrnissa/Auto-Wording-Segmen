@@ -289,10 +289,6 @@ def proses_dokumen(doc, data_per_segmen, tanggal_laporan=None):
     return doc, jumlah_diubah, log
 
 
-
-
-# UI
-
 import streamlit as st
 
 # =========================
@@ -301,134 +297,324 @@ import streamlit as st
 st.markdown("""
     <style>
     :root {
-        --bsi-teal: #00786F;
-        --bsi-teal-dark: #00534D;
+        --bsi-teal: #00A19C;
+        --bsi-teal-dark: #006A67;
+        --bsi-teal-darker: #004E4B;
         --bsi-gold: #F5A623;
-        --bsi-gold-dark: #D4890E;
-        --bsi-bg: #F4FAF9;
+        --bsi-gold-light: #FFD98A;
+        --bsi-bg: #EAF6F5;
     }
 
-    /* Background utama */
+    /* =========================================
+       BACKGROUND UTAMA
+       ========================================= */
     .stApp {
-        background-color: var(--bsi-bg);
+        background: linear-gradient(180deg, var(--bsi-bg) 0%, #FFFFFF 40%) !important;
     }
 
-    /* Judul & caption */
-    h1 {
-        color: var(--bsi-teal-dark) !important;
+    /* Hanya container pembungkus teks yang ditransparankan,
+       supaya tidak ada kotak putih menutupi tulisan,
+       tapi widget (input, uploader, dataframe) tetap punya background sendiri */
+    div[data-testid="stMarkdownContainer"],
+    div[data-testid="stVerticalBlock"],
+    div[data-testid="stHorizontalBlock"],
+    div.element-container {
+        background-color: transparent !important;
+    }
+
+    /* =========================================
+       HEADER BANNER ALA LOGO BSI
+       ========================================= */
+    .bsi-header {
+        background: linear-gradient(135deg, var(--bsi-teal-dark) 0%, var(--bsi-teal) 100%);
+        padding: 28px 32px;
+        border-radius: 14px;
+        margin-bottom: 28px;
+        box-shadow: 0 4px 14px rgba(0,106,103,0.35);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border: 2px solid var(--bsi-gold);
+    }
+    .bsi-header .bsi-star {
+        font-size: 34px;
+        color: var(--bsi-gold);
+        text-shadow: 0 0 12px rgba(245,166,35,0.6);
+    }
+    .bsi-header h1 {
+        color: #FFFFFF !important;
         font-weight: 800 !important;
+        margin: 0 !important;
+        font-size: 26px !important;
+    }
+    .bsi-header p {
+        color: var(--bsi-gold-light) !important;
+        margin: 4px 0 0 0 !important;
+        font-size: 14px !important;
+    }
+
+    /* =========================================
+       HEADING NON-BANNER
+       ========================================= */
+    h1:not(.bsi-header h1) {
+        color: var(--bsi-teal-darker) !important;
     }
     h2, h3 {
-        color: var(--bsi-teal) !important;
-    }
-    .stCaption, p, label, .st-emotion-cache-1v0mbdj {
-        color: #2E2E2E;
+        color: var(--bsi-teal-dark) !important;
+        border-left: 5px solid var(--bsi-gold);
+        padding-left: 10px;
+        margin-top: 18px !important;
     }
 
-    /* Tombol utama (primary) */
+    /* =========================================
+       TEKS st.markdown / st.write
+       ========================================= */
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] li,
+    div[data-testid="stMarkdownContainer"] span {
+        color: var(--bsi-teal-dark) !important;
+    }
+    div[data-testid="stMarkdownContainer"] strong {
+        color: var(--bsi-teal-darker) !important;
+    }
+
+    /* Label semua widget (text_input, number_input, selectbox, dll) */
+    label, [data-testid="stWidgetLabel"] p {
+        color: var(--bsi-teal-darker) !important;
+        font-weight: 600 !important;
+    }
+
+    /* Caption */
+    [data-testid="stCaptionContainer"] p {
+        color: #4A6B69 !important;
+    }
+
+    /* =========================================
+       TOMBOL
+       ========================================= */
     div.stButton > button[kind="primary"],
     div.stDownloadButton > button {
-        background-color: var(--bsi-teal) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
+        background: linear-gradient(135deg, var(--bsi-teal) 0%, var(--bsi-teal-dark) 100%) !important;
+        color: #FFFFFF !important;
+        border: 2.5px solid var(--bsi-gold) !important;
+        border-radius: 10px !important;
+        font-weight: 700 !important;
+        padding: 10px 22px !important;
+        box-shadow: 0 3px 10px rgba(0,106,103,0.3);
         transition: 0.2s ease-in-out;
     }
     div.stButton > button[kind="primary"]:hover,
     div.stDownloadButton > button:hover {
-        background-color: var(--bsi-gold) !important;
+        background: var(--bsi-gold) !important;
         color: #1a1a1a !important;
+        border-color: var(--bsi-teal-dark) !important;
+        transform: translateY(-1px);
     }
-
-    /* File uploader */
-    section[data-testid="stFileUploader"] {
-        border: 2px dashed var(--bsi-teal);
-        border-radius: 10px;
-        background-color: #FFFFFF;
-        padding: 10px;
-    }
-
-    /* Expander */
-    .streamlit-expanderHeader {
-        background-color: #E6F4F2;
+    div.stButton > button:not([kind="primary"]) {
+        border: 2px solid var(--bsi-teal) !important;
         color: var(--bsi-teal-dark) !important;
-        border-radius: 6px;
-        font-weight: 600;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        background-color: #FFFFFF !important;
     }
 
-    /* Divider */
+    /* =========================================
+       FILE UPLOADER
+       ========================================= */
+    section[data-testid="stFileUploader"] {
+        border: 3px dashed var(--bsi-gold) !important;
+        border-radius: 12px;
+        background-color: #FFFFFF !important;
+        padding: 14px;
+    }
+    section[data-testid="stFileUploader"]:hover {
+        border-color: var(--bsi-teal) !important;
+        background-color: #F2FBFA !important;
+    }
+
+    /* =========================================
+       EXPANDER
+       ========================================= */
+    .streamlit-expanderHeader {
+        background: linear-gradient(90deg, var(--bsi-teal) 0%, var(--bsi-teal-dark) 100%) !important;
+        color: #FFFFFF !important;
+        border-radius: 8px;
+        font-weight: 700;
+        padding: 8px 12px !important;
+        border: 1.5px solid var(--bsi-gold) !important;
+    }
+    .streamlit-expanderContent {
+        background-color: #FFFFFF !important;
+        border: 1px solid var(--bsi-teal) !important;
+        border-top: none !important;
+        border-radius: 0 0 8px 8px;
+    }
+
+    /* =========================================
+       DIVIDER
+       ========================================= */
     hr {
-        border-top: 2px solid var(--bsi-gold) !important;
+        border: none !important;
+        height: 4px !important;
+        background: linear-gradient(90deg, var(--bsi-gold), var(--bsi-teal)) !important;
+        border-radius: 2px;
+        margin: 20px 0 !important;
     }
 
-    /* Alert / info box */
+    /* =========================================
+       ALERT / INFO / SUCCESS BOX
+       ========================================= */
     div[data-testid="stAlert"] {
-        border-left: 5px solid var(--bsi-teal);
-        background-color: #E6F4F2;
+        border-left: 6px solid var(--bsi-gold) !important;
+        background-color: #E3F5F3 !important;
+        border-radius: 6px;
     }
-
-    /* Success box */
+    div[data-testid="stAlert"] p {
+        color: var(--bsi-teal-darker) !important;
+    }
     div[data-baseweb="notification"] {
-        background-color: #E6F4F2 !important;
-        border-left: 5px solid var(--bsi-teal) !important;
+        background-color: #FFF7E8 !important;
+        border-left: 6px solid var(--bsi-gold) !important;
     }
 
-    /* Sidebar (jika ada) */
+    /* =========================================
+       SIDEBAR (jika ada)
+       ========================================= */
     section[data-testid="stSidebar"] {
-        background-color: var(--bsi-teal-dark);
+        background: linear-gradient(180deg, var(--bsi-teal-darker) 0%, var(--bsi-teal-dark) 100%) !important;
     }
     section[data-testid="stSidebar"] * {
-        color: white !important;
+        color: #FFFFFF !important;
     }
 
-    /* Dataframe header */
+    /* =========================================
+       DATAFRAME
+       ========================================= */
+    .stDataFrame {
+        border: 1.5px solid var(--bsi-teal) !important;
+        border-radius: 8px;
+        overflow: hidden;
+    }
     .stDataFrame thead tr th {
+        background: linear-gradient(90deg, var(--bsi-teal-dark), var(--bsi-teal)) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+    }
+    .stDataFrame tbody tr:nth-child(even) {
+        background-color: #F2FBFA !important;
+    }
+    .stDataFrame tbody tr:hover {
+        background-color: var(--bsi-gold-light) !important;
+    }
+
+/* =========================================
+       DATE INPUT
+       ========================================= */
+    div[data-baseweb="input"]:has(input[aria-label*="tanggal" i]),
+    div[data-testid="stDateInput"] > div {
+        background-color: #FFFFFF !important;
+        border: 2px solid var(--bsi-gold) !important;
+        border-radius: 6px !important;
+    }
+    div[data-testid="stDateInput"] input {
+        color: var(--bsi-teal-darker) !important;
+        font-weight: 500 !important;
+    }
+    div[data-testid="stDateInput"] svg {
+        fill: var(--bsi-teal) !important;
+    }
+
+    /* Angka stepper number_input */
+    button[data-testid="stNumberInputStepUp"],
+    button[data-testid="stNumberInputStepDown"] {
         background-color: var(--bsi-teal) !important;
-        color: white !important;
+        color: #FFFFFF !important;
     }
 
-    /* Number input & text input border */
-    input {
-        border-color: var(--bsi-teal) !important;
+    /* =========================================
+       COLUMN SPACING RAPI
+       ========================================= */
+    div[data-testid="stHorizontalBlock"] {
+        gap: 1.2rem;
+    }
+    /* =========================================
+       FIX: TEKS DI DALAM TOMBOL & BANNER KETIMPA
+       WARNA TEAL DARI RULE MARKDOWN GENERIK
+       (Streamlit membungkus teks tombol/banner
+       dalam stMarkdownContainer yang sama, jadi
+       perlu selector lebih spesifik utk menang)
+       ========================================= */
+
+    /* Judul & subjudul banner header - paksa putih & emas */
+    div[data-testid="stMarkdownContainer"] .bsi-header h1,
+    .bsi-header div[data-testid="stMarkdownContainer"] h1 {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+    div[data-testid="stMarkdownContainer"] .bsi-header p,
+    .bsi-header div[data-testid="stMarkdownContainer"] p {
+        color: var(--bsi-gold-light) !important;
+        -webkit-text-fill-color: var(--bsi-gold-light) !important;
     }
 
-    /* Selectbox border */
-    div[data-baseweb="select"] > div {
-        border-color: var(--bsi-teal) !important;
+    /* Teks di dalam tombol primary (Generate Dokumen Word) - paksa putih */
+    div.stButton > button[kind="primary"] p,
+    div.stButton > button[kind="primary"] div[data-testid="stMarkdownContainer"] p,
+    div.stButton > button[kind="primary"] span {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        font-weight: 700 !important;
+    }
+    div.stButton > button[kind="primary"]:hover p,
+    div.stButton > button[kind="primary"]:hover div[data-testid="stMarkdownContainer"] p {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+    }
+
+    /* Teks di dalam tombol download (Download Hasil Word) - paksa putih */
+    div.stDownloadButton > button p,
+    div.stDownloadButton > button div[data-testid="stMarkdownContainer"] p,
+    div.stDownloadButton > button span {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        font-weight: 700 !important;
+    }
+    div.stDownloadButton > button:hover p,
+    div.stDownloadButton > button:hover div[data-testid="stMarkdownContainer"] p {
+        color: #1a1a1a !important;
+        -webkit-text-fill-color: #1a1a1a !important;
+    }
+
+    /* Teks di dalam tombol secondary (non-primary) - paksa teal-dark */
+    div.stButton > button:not([kind="primary"]) p,
+    div.stButton > button:not([kind="primary"]) div[data-testid="stMarkdownContainer"] p {
+        color: var(--bsi-teal-dark) !important;
+        -webkit-text-fill-color: var(--bsi-teal-dark) !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # =========================
+# HEADER BANNER (ala logo BSI)
+# =========================
+st.markdown("""
+    <div class="bsi-header">
+        <div class="bsi-star">✦</div>
+        <div>
+            <h1>Auto Wording Segmen Excel to Word</h1>
+            <p>Upload file Excel & template Word setiap kali laporan baru terbit</p>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
+
+# =========================
 # UI
 # =========================
-st.title("🏦 Auto Wording Segmen Excel to Word")
-st.caption(
-    "Upload file Excel & template Word setiap kali laporan baru terbit — "
-)
-
 col_upload1, col_upload2 = st.columns(2)
 with col_upload1:
     excel_file = st.file_uploader("1️⃣ Upload file Excel (.xlsx)", type=["xlsx"])
 with col_upload2:
     word_file = st.file_uploader("2️⃣ Upload template Word (.docx)", type=["docx"])
-
-st.subheader("📅 Tanggal Laporan")
-
-tanggal_laporan = st.date_input(
-    "Pilih tanggal laporan",
-    value=None,
-    format="DD/MM/YYYY",
-    help="Tanggal ini akan otomatis menggantikan tanggal 'sd ...' di template Word."
-)
-
-if tanggal_laporan:
-    st.info(
-        f"Tanggal yang akan digunakan di Word: "
-        f"**{format_tanggal_indonesia(tanggal_laporan)}**"
-    )
-
 
 if excel_file:
     wb = openpyxl.load_workbook(excel_file, data_only=True)
@@ -436,6 +622,22 @@ if excel_file:
     default_idx = sheet_names.index("REGION") if "REGION" in sheet_names else 0
     sheet_name = st.selectbox("Pilih sheet", sheet_names, index=default_idx)
     sheet = wb[sheet_name]
+
+        # ===== TANGGAL LAPORAN =====
+    st.subheader("📅 Tanggal Laporan")
+    tanggal_laporan = st.date_input(
+        "Pilih tanggal laporan",
+        value=None,
+        format="DD/MM/YYYY",
+        help="Tanggal ini akan otomatis menggantikan tanggal 'sd ...' di template Word.",
+    )
+    if tanggal_laporan:
+        st.info(
+            f"Tanggal yang akan digunakan di Word: "
+            f"**{format_tanggal_indonesia(tanggal_laporan)}**"
+        )
+
+    st.divider()
 
     st.subheader("🔎 Deteksi Baris per Segmen")
     st.markdown("**Kata kunci pencarian label per segmen** (ubah jika istilah di Excel berbeda)")
@@ -494,7 +696,6 @@ if excel_file:
         for label, default_kolom in DEFAULT_KOLOM.items():
             kolom_mapping[label] = st.text_input(label, value=default_kolom, key=f"col_{label}")
 
-    # Ambil data
     data_per_segmen = {
         segmen: get_row_data(sheet, baris_input[segmen], kolom_mapping)
         for segmen in SEGMEN_LIST
@@ -509,13 +710,11 @@ if excel_file:
     if word_file:
         if st.button("Generate Dokumen Word", type="primary"):
             doc = Document(word_file)
-
             doc, jumlah_diubah, log = proses_dokumen(
-                doc,
-                data_per_segmen,
-                tanggal_laporan=tanggal_laporan
+            doc,
+            data_per_segmen,
+            tanggal_laporan=tanggal_laporan
             )
-
 
             buffer = io.BytesIO()
             doc.save(buffer)
@@ -537,4 +736,3 @@ if excel_file:
         st.info("Upload template Word untuk melanjutkan.")
 else:
     st.info("Silakan upload file Excel terlebih dahulu.")
-
