@@ -729,7 +729,7 @@ if excel_file:
             st.download_button(
                 "⬇️ Download Hasil Word",
                 data=buffer,
-                file_name=f"Revised_{nama_output}.docx",
+                file_name=f"{nama_output}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             )
     else:
